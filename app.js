@@ -26,7 +26,8 @@ app.post("/chat", async (req, res) => {
     // If Gemini API key is available, call Gemini API
     if (GEMINI_API_KEY) {
       try {
-        const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent?key=${GEMINI_API_KEY}`, {
+        // Updated to use correct Gemini model name and API key in header
+        const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${GEMINI_API_KEY}`, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json'
@@ -41,7 +42,9 @@ app.post("/chat", async (req, res) => {
         });
 
         if (!response.ok) {
-          throw new Error(`Gemini API error: ${response.status}`);
+          const errorData = await response.text();
+          console.error('Gemini API error response:', errorData);
+          throw new Error(`Gemini API error: ${response.status} - ${errorData}`);
         }
 
         const data = await response.json();
@@ -78,7 +81,8 @@ const server = app.listen(port, () => console.log(`Example app listening on port
 server.keepAliveTimeout = 120 * 1000;
 server.headersTimeout = 120 * 1000;
 
-const html = `<!DOCTYPE html>
+const html = `
+<!DOCTYPE html>
 <html>
   <head>
     <title>Hello from Render!</title>
