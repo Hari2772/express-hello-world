@@ -80,10 +80,10 @@ server.headersTimeout = 120 * 1000;
 
 const html = `
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Hari Chat</title>
   <style>
     * {
@@ -94,7 +94,7 @@ const html = `
     body {
       font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
       background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-      height: 100vh;
+      min-height: 100vh;
       display: flex;
       justify-content: center;
       align-items: center;
@@ -149,6 +149,7 @@ const html = `
       padding: 12px 16px;
       border-radius: 18px;
       word-wrap: break-word;
+      white-space: pre-wrap;
     }
     .message.user .message-content {
       background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
@@ -195,6 +196,9 @@ const html = `
       transform: translateY(-2px);
       box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
     }
+    #sendButton:active:not(:disabled) {
+      transform: translateY(0);
+    }
     #sendButton:disabled {
       opacity: 0.6;
       cursor: not-allowed;
@@ -234,6 +238,9 @@ const html = `
       }
     }
     @media (max-width: 768px) {
+      body {
+        padding: 0;
+      }
       .chat-container {
         height: 100vh;
         max-height: 100vh;
@@ -316,6 +323,10 @@ const html = `
           body: JSON.stringify({ message })
         });
 
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`);
+        }
+
         const data = await response.json();
         hideTypingIndicator();
         
@@ -323,11 +334,13 @@ const html = `
           addMessage(data.reply, false);
         } else if (data.error) {
           addMessage('Sorry, something went wrong: ' + data.error, false);
+        } else {
+          addMessage('Sorry, received an unexpected response from the server.', false);
         }
       } catch (error) {
         hideTypingIndicator();
-        addMessage('Sorry, I couldn\'t connect to the server.', false);
         console.error('Error:', error);
+        addMessage('Sorry, I couldn\'t connect to the server. Please try again.', false);
       } finally {
         sendButton.disabled = false;
         messageInput.disabled = false;
@@ -337,11 +350,13 @@ const html = `
 
     sendButton.addEventListener('click', sendMessage);
     messageInput.addEventListener('keypress', (e) => {
-      if (e.key === 'Enter') {
+      if (e.key === 'Enter' && !e.shiftKey) {
+        e.preventDefault();
         sendMessage();
       }
     });
 
+    // Focus input on load
     messageInput.focus();
   </script>
 </body>
