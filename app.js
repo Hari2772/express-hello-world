@@ -1,6 +1,10 @@
 const express = require("express");
+const cors = require("cors");
 const app = express();
 const port = process.env.PORT || 3001;
+
+// Enable CORS for all routes
+app.use(cors());
 
 // Middleware to parse JSON bodies
 app.use(express.json());
@@ -8,7 +12,7 @@ app.use(express.json());
 // Original root endpoint
 app.get("/", (req, res) => res.type('html').send(html));
 
-// New /chat POST endpoint
+// New /chat POST endpoint with Gemini integration
 app.post("/chat", async (req, res) => {
   try {
     const { message } = req.body;
@@ -17,40 +21,41 @@ app.post("/chat", async (req, res) => {
       return res.status(400).json({ error: "Message field is required" });
     }
 
-    const OPENAI_API_KEY = process.env.OPENAI_API_KEY;
+    const GEMINI_API_KEY = process.env.GEMINI_API_KEY;
     
-    // If OpenAI API key is available, call OpenAI API
-    if (OPENAI_API_KEY) {
+    // If Gemini API key is available, call Gemini API
+    if (GEMINI_API_KEY) {
       try {
-        const response = await fetch('https://api.openai.com/v1/chat/completions', {
+        const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent?key=${GEMINI_API_KEY}`, {
           method: 'POST',
           headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${OPENAI_API_KEY}`
+            'Content-Type': 'application/json'
           },
           body: JSON.stringify({
-            model: 'gpt-3.5-turbo',
-            messages: [{ role: 'user', content: message }],
-            max_tokens: 150
+            contents: [{
+              parts: [{
+                text: message
+              }]
+            }]
           })
         });
 
         if (!response.ok) {
-          throw new Error(`OpenAI API error: ${response.status}`);
+          throw new Error(`Gemini API error: ${response.status}`);
         }
 
         const data = await response.json();
-        const reply = data.choices[0].message.content;
+        const reply = data.candidates[0].content.parts[0].text;
         
         return res.json({ 
           reply,
-          source: 'openai'
+          source: 'gemini'
         });
       } catch (error) {
-        console.error('OpenAI API error:', error);
-        // Fallback to static response if OpenAI fails
+        console.error('Gemini API error:', error);
+        // Fallback to static response if Gemini fails
         return res.json({ 
-          reply: `Echo (OpenAI unavailable): ${message}`,
+          reply: `Echo (Gemini unavailable): ${message}`,
           source: 'fallback',
           error: error.message
         });
