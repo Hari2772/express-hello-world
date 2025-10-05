@@ -2,15 +2,78 @@ const express = require("express");
 const app = express();
 const port = process.env.PORT || 3001;
 
+// Middleware to parse JSON bodies
+app.use(express.json());
+
+// Original root endpoint
 app.get("/", (req, res) => res.type('html').send(html));
+
+// New /chat POST endpoint
+app.post("/chat", async (req, res) => {
+  try {
+    const { message } = req.body;
+    
+    if (!message) {
+      return res.status(400).json({ error: "Message field is required" });
+    }
+
+    const OPENAI_API_KEY = process.env.OPENAI_API_KEY;
+    
+    // If OpenAI API key is available, call OpenAI API
+    if (OPENAI_API_KEY) {
+      try {
+        const response = await fetch('https://api.openai.com/v1/chat/completions', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${OPENAI_API_KEY}`
+          },
+          body: JSON.stringify({
+            model: 'gpt-3.5-turbo',
+            messages: [{ role: 'user', content: message }],
+            max_tokens: 150
+          })
+        });
+
+        if (!response.ok) {
+          throw new Error(`OpenAI API error: ${response.status}`);
+        }
+
+        const data = await response.json();
+        const reply = data.choices[0].message.content;
+        
+        return res.json({ 
+          reply,
+          source: 'openai'
+        });
+      } catch (error) {
+        console.error('OpenAI API error:', error);
+        // Fallback to static response if OpenAI fails
+        return res.json({ 
+          reply: `Echo (OpenAI unavailable): ${message}`,
+          source: 'fallback',
+          error: error.message
+        });
+      }
+    } else {
+      // No API key available, return static response
+      return res.json({ 
+        reply: `Echo (No API key configured): ${message}`,
+        source: 'static'
+      });
+    }
+  } catch (error) {
+    console.error('Error in /chat endpoint:', error);
+    return res.status(500).json({ error: 'Internal server error' });
+  }
+});
 
 const server = app.listen(port, () => console.log(`Example app listening on port ${port}!`));
 
 server.keepAliveTimeout = 120 * 1000;
 server.headersTimeout = 120 * 1000;
 
-const html = `
-<!DOCTYPE html>
+const html = `<!DOCTYPE html>
 <html>
   <head>
     <title>Hello from Render!</title>
