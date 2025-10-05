@@ -78,9 +78,8 @@ const server = app.listen(port, () => console.log(`Example app listening on port
 server.keepAliveTimeout = 120 * 1000;
 server.headersTimeout = 120 * 1000;
 
-const html = `
-<!DOCTYPE html>
-<html lang="en">
+const html = `<!DOCTYPE html>
+<html>
 <head>
   <meta charset="utf-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
@@ -169,7 +168,7 @@ const html = `
       display: flex;
       gap: 10px;
     }
-    #messageInput {
+    #msg {
       flex: 1;
       padding: 12px 16px;
       border: 2px solid #e0e0e0;
@@ -178,7 +177,7 @@ const html = `
       outline: none;
       transition: border-color 0.3s;
     }
-    #messageInput:focus {
+    #msg:focus {
       border-color: #667eea;
     }
     #sendButton {
@@ -257,7 +256,7 @@ const html = `
     <div class="chat-header">
       💬 Hari Chat
     </div>
-    <div class="chat-messages" id="chatMessages">
+    <div class="chat-messages" id="log">
       <div class="message bot">
         <div class="message-content">
           👋 Hello! I'm Hari Chat. Ask me anything!
@@ -265,13 +264,13 @@ const html = `
       </div>
     </div>
     <div class="chat-input-container">
-      <input type="text" id="messageInput" placeholder="Type your message..." autocomplete="off" />
-      <button id="sendButton">Send</button>
+      <input type="text" id="msg" placeholder="Type your message..." autocomplete="off"/>
+      <button id="sendButton" onclick="send()">Send</button>
     </div>
   </div>
   <script>
-    const chatMessages = document.getElementById('chatMessages');
-    const messageInput = document.getElementById('messageInput');
+    const log = document.getElementById('log');
+    const msg = document.getElementById('msg');
     const sendButton = document.getElementById('sendButton');
 
     function addMessage(content, isUser) {
@@ -283,8 +282,8 @@ const html = `
       contentDiv.textContent = content;
       
       messageDiv.appendChild(contentDiv);
-      chatMessages.appendChild(messageDiv);
-      chatMessages.scrollTop = chatMessages.scrollHeight;
+      log.appendChild(messageDiv);
+      log.scrollTop = log.scrollHeight;
     }
 
     function showTypingIndicator() {
@@ -292,8 +291,8 @@ const html = `
       typingDiv.className = 'message bot';
       typingDiv.id = 'typingIndicator';
       typingDiv.innerHTML = '<div class="typing-indicator active"><span></span><span></span><span></span></div>';
-      chatMessages.appendChild(typingDiv);
-      chatMessages.scrollTop = chatMessages.scrollHeight;
+      log.appendChild(typingDiv);
+      log.scrollTop = log.scrollHeight;
     }
 
     function hideTypingIndicator() {
@@ -303,14 +302,14 @@ const html = `
       }
     }
 
-    async function sendMessage() {
-      const message = messageInput.value.trim();
+    async function send() {
+      const message = msg.value.trim();
       if (!message) return;
 
       addMessage(message, true);
-      messageInput.value = '';
+      msg.value = '';
       sendButton.disabled = true;
-      messageInput.disabled = true;
+      msg.disabled = true;
       
       showTypingIndicator();
 
@@ -343,21 +342,20 @@ const html = `
         addMessage('Sorry, I couldn\'t connect to the server. Please try again.', false);
       } finally {
         sendButton.disabled = false;
-        messageInput.disabled = false;
-        messageInput.focus();
+        msg.disabled = false;
+        msg.focus();
       }
     }
 
-    sendButton.addEventListener('click', sendMessage);
-    messageInput.addEventListener('keypress', (e) => {
+    msg.addEventListener('keypress', (e) => {
       if (e.key === 'Enter' && !e.shiftKey) {
         e.preventDefault();
-        sendMessage();
+        send();
       }
     });
 
     // Focus input on load
-    messageInput.focus();
+    msg.focus();
   </script>
 </body>
 </html>
