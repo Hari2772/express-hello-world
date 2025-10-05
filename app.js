@@ -78,12 +78,13 @@ const server = app.listen(port, () => console.log(`Example app listening on port
 server.keepAliveTimeout = 120 * 1000;
 server.headersTimeout = 120 * 1000;
 
-const html = `<!DOCTYPE html>
-<html lang="en">
+const html = `
+<!DOCTYPE html>
+<html>
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Gemini Chat</title>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Hari Chat</title>
   <style>
     * {
       margin: 0;
@@ -247,21 +248,20 @@ const html = `<!DOCTYPE html>
 <body>
   <div class="chat-container">
     <div class="chat-header">
-      💬 Gemini Chat
+      💬 Hari Chat
     </div>
     <div class="chat-messages" id="chatMessages">
       <div class="message bot">
         <div class="message-content">
-          👋 Hello! I'm powered by Gemini AI. Ask me anything!
+          👋 Hello! I'm Hari Chat. Ask me anything!
         </div>
       </div>
     </div>
     <div class="chat-input-container">
-      <input type="text" id="messageInput" placeholder="Type your message..." autocomplete="off">
+      <input type="text" id="messageInput" placeholder="Type your message..." autocomplete="off" />
       <button id="sendButton">Send</button>
     </div>
   </div>
-
   <script>
     const chatMessages = document.getElementById('chatMessages');
     const messageInput = document.getElementById('messageInput');
@@ -269,7 +269,7 @@ const html = `<!DOCTYPE html>
 
     function addMessage(content, isUser) {
       const messageDiv = document.createElement('div');
-      messageDiv.className = \`message \${isUser ? 'user' : 'bot'}\`;
+      messageDiv.className = `message ${isUser ? 'user' : 'bot'}`;
       
       const contentDiv = document.createElement('div');
       contentDiv.className = 'message-content';
